@@ -1,5 +1,6 @@
 const { Ticket } = require("../models");
 const { Op } = require("sequelize");
+const cloudinary = require("../config/cloudinary");
 
 const searchTickets = async (req, res) => {
   try {
@@ -115,25 +116,106 @@ const updateTicket = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const [numRowsUpdated] = await Ticket.update(
-      { bukti_ktp, bukti_meter, validasi, lokasi },
-      { where: { id } }
-    );
-    console.log(numRowsUpdated);
-    if (numRowsUpdated === 1) {
-      const updatedTicket = await Ticket.findOne({ where: { id } });
-      if (updatedTicket) {
-        res.status(200).json({
-          status: "OK",
-          message: "UPDATE ITEM SUCCESFULLY",
-        });
-      }
-    } else {
-      res.status(404).json({
-        status: "FAILED",
-        message: `Item with ${id} is not exist`,
-      });
+    const updatedTicket = await Ticket.findOne({ where: { id } });
+
+    if (updatedTicket == null) {
+      res.status(404).json({ message: "id ticket tidak ditemukan" });
+      return;
     }
+
+    if (bukti_ktp !== null || bukti_ktp === "") {
+      const oldFileBuktiKtp = updatedTicket.bukti_ktp;
+      if (oldFileBuktiKtp !== null) {
+        const getImageID = oldFileBuktiKtp.split("/").pop().split(".")[0];
+        await cloudinary.uploader.destroy(`bukti-pictures/${getImageID}`);
+      }
+    }
+
+    if (bukti_meter !== null || bukti_meter === "") {
+      const oldFileBuktiMeter = updatedTicket.bukti_meter;
+      if (oldFileBuktiMeter !== null) {
+        const getImageID = oldFileBuktiMeter.split("/").pop().split(".")[0];
+        await cloudinary.uploader.destroy(`bukti-pictures/${getImageID}`);
+      }
+    }
+
+    const fileBase64 = req.file.buffer.toString("base64");
+    const file = `data:${req.file.mimetype};base64,${fileBase64}`;
+
+    cloudinary.uploader.upload(
+      file,
+      { folder: "backend-files" },
+      async function (err, result) {
+        if (!!err) {
+          res.status(400).json({
+            status: "Update Failed",
+            errors: err.message,
+          });
+          return;
+        }
+
+        const confirm = result.url;
+
+        if (bukti_ktp !== null || bukti_ktp === "") {
+          const [numRowsUpdated] = await Ticket.update(
+            { bukti_ktp: confirm, bukti_meter, validasi, lokasi },
+            { where: { id } }
+          );
+          console.log(numRowsUpdated);
+          if (numRowsUpdated === 1) {
+            if (updatedTicket) {
+              res.status(200).json({
+                status: "OK",
+                message: "UPDATE ITEM SUCCESFULLY",
+              });
+            }
+          } else {
+            res.status(404).json({
+              status: "FAILED",
+              message: `Item with ${id} is not exist`,
+            });
+          }
+        } else if (bukti_meter !== null || bukti_meter === "") {
+          const [numRowsUpdated] = await Ticket.update(
+            { bukti_ktp, bukti_meter: confirm, validasi, lokasi },
+            { where: { id } }
+          );
+          console.log(numRowsUpdated);
+          if (numRowsUpdated === 1) {
+            if (updatedTicket) {
+              res.status(200).json({
+                status: "OK",
+                message: "UPDATE ITEM SUCCESFULLY",
+              });
+            }
+          } else {
+            res.status(404).json({
+              status: "FAILED",
+              message: `Item with ${id} is not exist`,
+            });
+          }
+        } else {
+          const [numRowsUpdated] = await Ticket.update(
+            { bukti_ktp, bukti_meter, validasi, lokasi },
+            { where: { id } }
+          );
+          console.log(numRowsUpdated);
+          if (numRowsUpdated === 1) {
+            if (updatedTicket) {
+              res.status(200).json({
+                status: "OK",
+                message: "UPDATE ITEM SUCCESFULLY",
+              });
+            }
+          } else {
+            res.status(404).json({
+              status: "FAILED",
+              message: `Item with ${id} is not exist`,
+            });
+          }
+        }
+      }
+    );
   } catch (error) {
     res.status(400).json({
       status: "FAIL",
