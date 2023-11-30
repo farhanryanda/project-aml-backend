@@ -110,7 +110,7 @@ const createTicket = async (req, res) => {
   }
 };
 
-const updateTicket = async (res, req) => {
+const updateTicket = async (req, res) => {
   const { bukti_ktp, bukti_meter, validasi, lokasi } = req.body;
   const { id } = req.params;
 
