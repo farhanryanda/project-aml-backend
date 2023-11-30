@@ -126,7 +126,6 @@ const updateTicket = async (req, res) => {
         res.status(200).json({
           status: "OK",
           message: "UPDATE ITEM SUCCESFULLY",
-          data: updatedTicket,
         });
       }
     } else {
