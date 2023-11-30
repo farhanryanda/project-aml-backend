@@ -121,7 +121,7 @@ const updateTicket = async (res, req) => {
     );
     console.log(numRowsUpdated);
     if (numRowsUpdated === 1) {
-      const updatedTicket = await Ticket.findOne({ where: { id } });
+      const updatedTicket = await Ticket.findByPk({ where: { id } });
       if (updatedTicket) {
         res.status(200).json({
           status: "OK",
