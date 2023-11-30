@@ -1,5 +1,6 @@
 const { Ticket } = require("../models");
 const { Op } = require("sequelize");
+
 const searchTickets = async (req, res) => {
   try {
     // Extract the search query from the request parameters
@@ -109,9 +110,43 @@ const createTicket = async (req, res) => {
   }
 };
 
+const updateTicket = async (res, req) => {
+  const { bukti_ktp, bukti_meter, validasi, lokasi } = req.body;
+  const { id } = req.params;
+
+  try {
+    const [numRowsUpdated] = await Ticket.update(
+      { bukti_ktp, bukti_meter, validasi, lokasi },
+      { where: { id } }
+    );
+    console.log(numRowsUpdated);
+    if (numRowsUpdated === 1) {
+      const updatedTicket = await Ticket.findOne({ where: { id } });
+      if (updatedTicket) {
+        res.status(200).json({
+          status: "OK",
+          message: "UPDATE ITEM SUCCESFULLY",
+          data: updatedTicket,
+        });
+      }
+    } else {
+      res.status(404).json({
+        status: "FAILED",
+        message: `Item with ${id} is not exist`,
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      status: "FAIL",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   findAllTickets,
   createTicket,
   searchTickets,
   findTicketById,
+  updateTicket,
 };
