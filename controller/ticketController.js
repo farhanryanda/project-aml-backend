@@ -125,19 +125,16 @@ const updateTicket = async (req, res) => {
       if (updatedTicket) {
         res.status(200).json({
           status: "OK",
-          message: "UPDATE ITEM SUCCESFULLY",
         });
       }
     } else {
       res.status(404).json({
         status: "FAILED",
-        message: `Item with ${id} is not exist`,
       });
     }
   } catch (error) {
     res.status(400).json({
       status: "FAIL",
-      message: error.message,
     });
   }
 };
